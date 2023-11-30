@@ -49,25 +49,30 @@ class IngredientCorpus:
         return lemmatized_tokens
 
     def _find_matches(self, tokens):
-        matches = []
+        matches = set()
         peeker = peekable(tokens)
         while peeker:
             first_token = next(peeker)
             if first_token not in self.bktree:
                 continue
+
             node = self.bktree[first_token]
             active_match = [first_token]
+            def check_node():
+                if "valid_end" in node:
+                    ingr = " ".join(active_match)
+                    matches.add(ingr)
+            
+            check_node()
             while peeker and peeker.peek() in node:
                 next_lbl = next(peeker)
                 node = node[next_lbl]
                 active_match.append(next_lbl)
-            if "valid_end" in node:
-                ingr = " ".join(active_match)
-                matches.append(ingr)
+                check_node()
         return matches
     
     def _greedy_match(self, tokens):
-        matches = self._find_matches(tokens)
+        matches = list(self._find_matches(tokens))
         if len(matches) == 0:
             return None
         matches.sort(reverse=True, key=len)
