@@ -1,4 +1,5 @@
 import base64
+import nltk
 from PIL import Image
 from io import BytesIO
 from fastapi import FastAPI, Request, Form
@@ -11,6 +12,12 @@ corp = IngredientCorpus()
 image_recognizer = ImageRecognizer()
 
 def server_setup(app):
+    # download required NLTK components
+    nltk.download("wordnet")
+    nltk.download("averaged_perceptron_tagger")
+    nltk.download("punkt")
+    nltk.download("stopwords")
+
     # load ingredient BK-tree and tokens
     corp.load_bktree("./corpus/ingredient_bktree.json")
     corp.load_tokens("./corpus/ingredient_tokens.txt")
