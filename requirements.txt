@@ -1,3 +1,8 @@
-fastapi
+fastapi~=0.104.1
 uvicorn[standard]
-nltk
+nltk~=3.8.1
+more_itertools
+torch~=2.1.1
+torchvision~=0.16.1
+Pillow~=10.1.0
+python-multipart
