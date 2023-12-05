@@ -7,6 +7,7 @@ from fastapi import FastAPI, Request, Form, UploadFile
 from contextlib import asynccontextmanager
 from ingredient import IngredientCorpus
 from image_recognition import ImageRecognizer
+from urllib import parse
 
 
 ImageFile.LOAD_TRUNCATED_IMAGES = True
@@ -52,13 +53,15 @@ async def recognize_image(request: Request):
         while len(image) % 4 != 0:
             image += "="
 
-        print(len(image), "ludicrous")
-        print(base64.urlsafe_b64decode("ivna===="))
-        
-        # decode base64 to raw bytes
-        base64_bytes = base64.urlsafe_b64decode(image)
-
-        print(len(base64_bytes), " bizzare!")
+        #print(len(image), "ludicrous")
+        #print(base64.urlsafe_b64decode("ivna===="))
+        #print(image[:400])
+        #print(image[-50:])
+        # URL decode the base64 string
+        image = parse.unquote(image)
+        # then read it to bytes
+        base64_bytes = base64.b64decode(image)
+        #print(len(base64_bytes), " bizzare!")
 
         # open bytes as image
         img = Image.open(BytesIO(base64_bytes)).convert("RGB")
