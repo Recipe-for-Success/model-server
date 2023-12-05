@@ -62,7 +62,9 @@ class ImageRecognizer:
 
     def recognize_image(self, image):
         # transform the input image using the model test transforms
-        tensor_image = self.INPUT_TRANSFORMS(image).unsqueeze(0)
+        tensor_image = self.INPUT_TRANSFORMS(image).unsqueeze_(0)
+
+        print(tensor_image.shape, "woahh")
         # don't update model gradients
         with torch.no_grad():
             # get model output
