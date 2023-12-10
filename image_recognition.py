@@ -1,14 +1,13 @@
 import torch
 from torch import nn
 from torchvision import transforms, models
-from PIL import Image
 
 # wrap into a Python class because the model parameters weren't being properly persisted without doing so
 class ImageRecognizer:
-    # initialize with pretrained ResNet
+    # initialize with pretrained ResNet 50 weights
     model = models.resnet50(pretrained=True)
-    # path to the model parameters
 
+    # the list of classes to be recognized by the model; update this if you change them
     CLASS_NAMES = [
         "apple",
         "avocado",
@@ -27,10 +26,10 @@ class ImageRecognizer:
         "tomato",
         "white onion"
     ]
-
+    # use CPU by default because the model runs quickly anyway and EC2 GPU nodes are expensive
     DEVICE = "cpu"
 
-    # these transforms must match the test_transforms used for testing the model
+    # input transforms - these must match the test_transforms used for testing the model
     INPUT_TRANSFORMS = transforms.Compose([
         transforms.Resize((224, 224)),
         transforms.ToTensor(),
@@ -38,15 +37,13 @@ class ImageRecognizer:
 
     def reload_model(self, model_path):
         """Function to reload the model parameters from a PyTorch state dictionary.
-        Accepts the path to a file created from save"""
+        Accepts the path to the state dictionary to reload into the model."""
         # load pretrained ResNet
-        # freeze all but the last layer
+        # freeze all but the last layer (which we will replace)
         for param in self.model.parameters():
             param.requires_grad = False
         # get number of expected features from ResNet (512)
         num_ftrs = self.model.fc.in_features
-        # Here the size of each output sample is set to 2.
-        # Alternatively, it can be generalized to ``nn.Linear(num_ftrs, len(class_names))``.
         # create final layer
         # any model architecture changes need to be identical to those used during model training
         self.model.fc = nn.Sequential(
@@ -61,13 +58,18 @@ class ImageRecognizer:
         self.model.eval()
 
     def recognize_image(self, image):
-        # transform the input image using the model test transforms
-        tensor_image = self.INPUT_TRANSFORMS(image).unsqueeze_(0)
+        """
+        Estimate which of currently 16 ingredients is most likely to be present in an input image.
 
-        print(tensor_image.shape, "woahh")
+        Accepts input as an RGB image (*not* RGBA), processes it, and feeds it through the model.
+
+        Returns the class name of the ingredient as a string (e.g. "tomato").
+        """
+        # transform the input image using the model test transforms, then unsqueeze for non-batch processing
+        tensor_image = self.INPUT_TRANSFORMS(image).unsqueeze_(0)
         # don't update model gradients
         with torch.no_grad():
-            # get model output
+            # get model output (don't train!)
             self.model.eval()
             output = self.model(tensor_image)
             # get which class is the strongest prediction from the output

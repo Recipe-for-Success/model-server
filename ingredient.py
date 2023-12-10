@@ -13,6 +13,7 @@ def read_set(file):
     return s
 
 def only_alpha(s):
+    """Strip non-alphabet characters"""
     return "".join([i for i in s if i.isalpha() or i == " "])
 
 blocked_pos = ["CD", "POS", ".", "(", ")"]
@@ -24,12 +25,14 @@ class IngredientCorpus:
         self.lem = WordNetLemmatizer()
 
     def load_tokens(self, token_file):
+        """Load a list of tokens from a file"""
         with open(token_file, "r") as file:
             for token in file.readlines():
                 if token:
                     self.tokens.add(token.strip())
 
     def load_bktree(self, tree_file):
+        """Load the BK tree from a JSON file at the indicated path"""
         with open(tree_file, "r") as file:
             self.bktree = json.load(file)
 
@@ -37,6 +40,7 @@ class IngredientCorpus:
         return " ".join(s.split()).lower()
 
     def _tokenize_ingr(self, txt):
+        """Lemmatize and tokenize an ingredient"""
         txt = self._pre_token_strip(txt)
         tokens = word_tokenize(txt)
         lemmatized_tokens = []
@@ -49,6 +53,7 @@ class IngredientCorpus:
         return lemmatized_tokens
 
     def _find_matches(self, tokens):
+        """Use the BK-tree to find matches for a given set of tokens"""
         matches = set()
         peeker = peekable(tokens)
         while peeker:
